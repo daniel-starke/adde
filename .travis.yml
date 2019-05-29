@@ -1,0 +1,8 @@
+language: cpp
+compiler: gcc
+os: linux
+script:
+ - make clean all UNICODE=0 NO_GPL=0 DEBUG=0
+ - make clean all UNICODE=0 NO_GPL=0 DEBUG=1
+ - make clean all UNICODE=0 NO_GPL=1 DEBUG=0
+ - make clean all UNICODE=0 NO_GPL=1 DEBUG=1
