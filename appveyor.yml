@@ -14,7 +14,6 @@ environment:
 
 install:
  - C:\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm"
- - C:\msys64\usr\bin\bash -lc "pacman -S --needed --noconfirm base-devel msys2-devel mingw-w64-x86_64-toolchain make"
 
 build_script:
  - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=0"
