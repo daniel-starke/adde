@@ -1,15 +1,27 @@
 version: 1.0.0.{build}
 
+image:
+ - Visual Studio 2015
+
+environment:
+  matrix:
+  - COMPILER: msys2
+    PLATFORM: x64
+    MSYS2_ARCH: x86_64
+    MSYS2_DIR: msys64
+    MSYSTEM: MINGW64
+    BIT: 64
+
 install:
- - appveyor DownloadFile https://www.cygwin.com/setup-x86_64.exe -FileName C:\cygwin64\setup-x86_64.exe
- - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup -P gcc -P g++
+ - C:\msys64\usr\bin\bash -lc pacman -Syu
+ - C:\msys64\usr\bin\bash -lc pacman -S --needed --noconfirm base-devel msys2-devel mingw-w64-x86_64-toolchain make
 
 build_script:
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=1"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=0"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=1"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=0"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=1"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=0"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=1"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=0"
+ - C:\msys64\usr\bin\bash -lc "make -C /c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=1"
