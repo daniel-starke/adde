@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-08
- * @version 2019-05-24
+ * @version 2019-05-29
  * 
  * @todo use busy-wait only with more than 1 core (https://stackoverflow.com/a/150971/2525536)
  * @todo check if we can call ser_write() less often to increase throughput; use separate write thread alternatively
@@ -978,7 +978,7 @@ struct CStrArg {
 			TCHAR * str = _tfromUtf8N(this->ptr, this->size);
 			if (str == NULL) return -1;
 			const int res = _ftprintf(fd, _T("%s"), str);
-			if (str != this->ptr) free(str);
+			if (str != reinterpret_cast<const TCHAR *>(this->ptr)) free(str);
 			if (res <= 0) return res;
 			ret += res;
 		}
@@ -1477,7 +1477,7 @@ static int addeMain(int argc, TCHAR ** argv) {
 					goto onError;
 				}
 				_ftprintf(ferr, _T("%s"), text);
-				if (text != licenseText) free(text);
+				if (text != reinterpret_cast<const TCHAR *>(licenseText)) free(text);
 			}
 #else /* !UNICODE */
 			_ftprintf(ferr, _T("%s"), licenseText);
