@@ -2,14 +2,14 @@ version: 1.0.0.{build}
 
 install:
  - appveyor DownloadFile https://www.cygwin.com/setup-x86_64.exe -FileName C:\cygwin64\setup-x86_64.exe
- - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup -P clang
+ - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup -P gcc -P g++
 
 build_script:
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=0 NO_GPL=0 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=0 NO_GPL=0 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=0 NO_GPL=1 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=0 NO_GPL=1 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=1 NO_GPL=0 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=1 NO_GPL=0 DEBUG=1"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=1 NO_GPL=1 DEBUG=0"
- - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde CC=clang CXX=clang++ clean all UNICODE=1 NO_GPL=1 DEBUG=1"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=0"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=0 DEBUG=1"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=0"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=0 NO_GPL=1 DEBUG=1"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=0"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=0 DEBUG=1"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=0"
+ - C:\cygwin64\bin\bash -lc "make -C /cygdrive/c/projects/adde clean all UNICODE=1 NO_GPL=1 DEBUG=1"
