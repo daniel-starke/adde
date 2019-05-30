@@ -25,6 +25,7 @@ as MCU or peripheral hardware emulation. Those features may be found in [simavr]
 Usage
 =====
 
+Compile and flash the [adde firmware](src/arduino) with the Arduino IDE to your device.  
 Copy your .ino and related files to the usr directory and execute `make clean all`.  
 Run bin/adde with the serial port of your Arduino device.
 
