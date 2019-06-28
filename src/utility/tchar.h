@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2014-2019 Daniel Starke
  * @date 2014-05-04
- * @version 2019-05-01
+ * @version 2019-06-28
  */
 
 #ifndef __TCHAR_H__
@@ -57,7 +57,7 @@ typedef wint_t TINT;
 #define _ttoUtf8N(x, y) cvutf8_fromUtf16N(x, y)
 #define _tfromUtf8(x) cvutf8_toUtf16(x)
 #define _tfromUtf8N(x, y) cvutf8_toUtf16N(x, y)
-#define PRUTF8 L"S"
+#define PRTCHAR L"S"
 #define PCF_PATH_SEPT PCF_PATH_SEPU
 
 #else /* not UNICODE */
@@ -93,7 +93,7 @@ typedef int TINT;
 #define _ttoUtf8N(x, y) strndupInternal(x, y)
 #define _tfromUtf8(x) strdup(x)
 #define _tfromUtf8N(x, y) strndupInternal(x, y)
-#define PRUTF8 "s"
+#define PRTCHAR "s"
 #define PCF_PATH_SEPT PCF_PATH_SEP
 
 #endif /* not UNICODE */

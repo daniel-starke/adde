@@ -130,5 +130,5 @@ See [copying file](doc/COPYING).
 Contributions
 =============
 
-No code contributions are accepted. Please file a bug report or feature request instead.  
+No content contributions are accepted. Please file a bug report or feature request instead.  
 This decision was made in consideration of the used license.

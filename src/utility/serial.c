@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019-2019 Daniel Starke
  * @date 2019-03-26
- * @version 2019-05-05
+ * @version 2019-06-28
  */
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +13,10 @@
 #if defined(PCF_IS_WIN)
 #undef WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+
+/** Check of the serial interface device was removed every given milliseconds. */
+#define SER_CHECK_INTERVAL 100
 
 
 /**
@@ -26,6 +30,10 @@ struct tSerial {
 	tSerStatusLine status;
 	OVERLAPPED recvStruct[1];
 	OVERLAPPED sendStruct[1];
+	char * devPath;
+	HANDLE termEvent;
+	HANDLE checkThread;
+	volatile int removed;
 };
 
 
@@ -84,6 +92,33 @@ static int ser_fillConfig(DCB * config, const size_t speed, const tSerFraming fr
 
 
 /**
+ * Background thread which checks if the serial interface device was removed.
+ * 
+ * @param[in] lpParam - lpParam - user data
+ * @return 1 on success, else 0
+ */
+static DWORD WINAPI ser_checkThread(LPVOID lpParam) {
+	tSerial * ser = (tSerial *)lpParam;
+	for (;;) {
+		SetLastError(0);
+		const HANDLE hnd = CreateFileA(ser->devPath, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
+		const DWORD err = GetLastError();
+		if (hnd != INVALID_HANDLE_VALUE) CloseHandle(hnd);
+		if (err == ERROR_FILE_NOT_FOUND) {
+			ser->removed = 1;
+			return 1;
+		}
+		switch (WaitForSingleObject(ser->termEvent, (DWORD)(SER_CHECK_INTERVAL))) {
+		case WAIT_OBJECT_0: return 1;
+		case WAIT_TIMEOUT: break;
+		default: return 0;
+		}
+	}
+	return 0;
+}
+
+
+/**
  * Create a new serial interface context based on the given device path and configuration.
  * 
  * @param[in] device - serial interface device
@@ -94,7 +129,6 @@ static int ser_fillConfig(DCB * config, const size_t speed, const tSerFraming fr
  */
 tSerial * ser_create(const char * device, const size_t speed, const tSerFraming framing, const tSerFlowCtrl flow) {
 	size_t devPathLen;
-	char * devPath = NULL;
 	DCB params = { 0 };
 	COMMTIMEOUTS tout = { 0 };
 	if (device == NULL) return NULL;
@@ -104,11 +138,11 @@ tSerial * ser_create(const char * device, const size_t speed, const tSerFraming 
 	res->port = INVALID_HANDLE_VALUE;
 	
 	devPathLen = strlen(device) + 5;
-	devPath = (char *)malloc(devPathLen * sizeof(char));
-	if (devPath == NULL) goto onError;
-	snprintf(devPath, devPathLen, "\\\\.\\%s", device);
+	res->devPath = (char *)malloc(devPathLen * sizeof(char));
+	if (res->devPath == NULL) goto onError;
+	snprintf(res->devPath, devPathLen, "\\\\.\\%s", device);
 	
-	res->port = CreateFileA(devPath, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
+	res->port = CreateFileA(res->devPath, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
 	if (res->port == INVALID_HANDLE_VALUE) goto onError;
 	
 	if (ser_fillConfig(&params, speed, framing, flow) == 0) goto onError;
@@ -126,16 +160,17 @@ tSerial * ser_create(const char * device, const size_t speed, const tSerFraming 
 	res->flow = flow;
 	res->status = (tSerStatusLine)(SL_RTS | SL_DTR);
 	ser_getLines(res);
-	if (SetCommMask(res->port, EV_RXCHAR) == 0) goto onError;
 	res->recvStruct->hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (res->recvStruct->hEvent == NULL) goto onError;
 	res->sendStruct->hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (res->sendStruct->hEvent == NULL) goto onError;
+	res->termEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	if (res->termEvent == NULL) goto onError;
+	res->checkThread = CreateThread(NULL, 0, ser_checkThread, (LPVOID)res, 0, NULL);
+	if (res->checkThread == NULL) goto onError;
 	
-	free(devPath);
 	return res;
 onError:
-	if (devPath != NULL) free(devPath);
 	ser_delete(res);
 	return NULL;
 }
@@ -151,7 +186,7 @@ onError:
  * @return 1 on success, else 0
  */
 int ser_setConfig(tSerial * ser, const size_t speed, const tSerFraming framing, const tSerFlowCtrl flow) {
-	if (ser == NULL) return 0;
+	if (ser == NULL || ser->removed != 0) return 0;
 	if (ser->speed == speed && ser->framing == framing && ser->flow == flow) return 1;
 	DCB params = { 0 };
 	int res = 0;
@@ -179,13 +214,15 @@ onError:
  */
 tSerStatusLine ser_getLines(tSerial * ser) {
 	DWORD status;
-	if (ser == NULL) return (tSerStatusLine)0;
+	if (ser == NULL || ser->removed != 0) return (tSerStatusLine)0;
 	ser->status = (tSerStatusLine)(ser->status & (SL_RTS | SL_DTR));
 	if (GetCommModemStatus(ser->port, &status) != 0) {
 		if ((status & MS_CTS_ON)  != 0) ser->status |= SL_CTS;
 		if ((status & MS_DSR_ON)  != 0) ser->status |= SL_DSR;
 		if ((status & MS_RLSD_ON) != 0) ser->status |= SL_DCD;
 		if ((status & MS_RING_ON) != 0) ser->status |= SL_RING;
+	} else {
+		ser->status = (tSerStatusLine)0;
 	}
 	return ser->status;
 }
@@ -199,7 +236,7 @@ tSerStatusLine ser_getLines(tSerial * ser) {
  * @return 1 on success, else 0
  */
 int ser_setLines(tSerial * ser, const tSerStatusLine status) {
-	if (ser == NULL) return 0;
+	if (ser == NULL || ser->removed != 0) return 0;
 	
 	/* update RTS on change */
 	if (((ser->status ^ status) & SL_RTS) != 0) {
@@ -227,7 +264,7 @@ int ser_setLines(tSerial * ser, const tSerStatusLine status) {
  * @return number of bytes written, -1 on error, -2 on timeout
  */
 ssize_t ser_read(tSerial * ser, uint8_t * buf, const size_t size, const size_t timeout) {
-	if (ser == NULL || buf == NULL) return -1;
+	if (ser == NULL || ser->removed != 0 || buf == NULL) return -1;
 	if (size == 0) return 0;
 	COMSTAT comStat = { 0 };
 	DWORD dwErrorFlags = 0;
@@ -240,6 +277,8 @@ ssize_t ser_read(tSerial * ser, uint8_t * buf, const size_t size, const size_t t
 	do {
 		ResetEvent(ser->recvStruct->hEvent);
 		ClearCommError(ser->port, &dwErrorFlags, &comStat);
+		/* we need to set the mask before every wait */
+		if (SetCommMask(ser->port, EV_RXCHAR) == 0) return -1;
 		if (comStat.cbInQue <= 0) {
 			/* wait for serial data */
 			if (WaitCommEvent(ser->port, &dwCommEvent, ser->recvStruct) == 0) {
@@ -299,7 +338,7 @@ onTimeout:
  * @return number of bytes written, -1 on error, -2 on timeout
  */
 ssize_t ser_write(tSerial * ser, const uint8_t * buf, const size_t size, const size_t timeout) {
-	if (ser == NULL || buf == NULL) return -1;
+	if (ser == NULL || ser->removed != 0 || buf == NULL) return -1;
 	if (size == 0) return 0;
 	size_t rem = size;
 	DWORD dwWritten;
@@ -341,7 +380,7 @@ onError:
  * @return 1 on success, else 0
  */
 int ser_clear(tSerial * ser) {
-	if (ser == NULL) return 0;
+	if (ser == NULL || ser->removed != 0) return 0;
 	ClearCommError(ser->port, NULL, NULL);
 	return (PurgeComm(ser->port, PURGE_RXCLEAR | PURGE_TXCLEAR) != 0) ? 1 : 0;
 }
@@ -354,9 +393,16 @@ int ser_clear(tSerial * ser) {
  */
 void ser_delete(tSerial * ser) {
 	if (ser == NULL) return;
+	if (ser->checkThread != NULL) {
+		if (ser->termEvent != NULL) SetEvent(ser->termEvent);
+		WaitForSingleObject(ser->checkThread, INFINITE);
+		CloseHandle(ser->checkThread);
+	}
 	if (ser->port != INVALID_HANDLE_VALUE) CloseHandle(ser->port);
 	if (ser->recvStruct->hEvent != NULL) CloseHandle(ser->recvStruct->hEvent);
 	if (ser->sendStruct->hEvent != NULL) CloseHandle(ser->sendStruct->hEvent);
+	if (ser->devPath != NULL) free(ser->devPath);
+	if (ser->termEvent != NULL) CloseHandle(ser->termEvent);
 	free(ser);
 }
 
@@ -597,6 +643,8 @@ tSerStatusLine ser_getLines(tSerial * ser) {
 		if ((status & (TIOCM_CAR | TIOCM_CD)) != 0)  ser->status |= SL_DCD;
 		if ((status & TIOCM_DTR) != 0)               ser->status |= SL_DTR;
 		if ((status & (TIOCM_RNG | TIOCM_RI)) != 0)  ser->status |= SL_RING;
+	} else {
+		ser->status = (tSerStatusLine)0;
 	}
 	return ser->status;
 }

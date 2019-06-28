@@ -3,7 +3,7 @@ CC = $(PREFIX)gcc
 CXX = $(PREFIX)g++
 
 NO_GPL = 1
-#UNICODE = 1
+UNICODE = 1
 #DEBUG = 1
 USR = usr
 
@@ -12,14 +12,14 @@ BR := \)
 override USR := $(USR:/=)
 SRC = $(wildcard src/*.c) $(wildcard src/*.cpp) $(wildcard src/utility/*.c) $(shell find $(USR) -type f $(BL) -name "*.c" -or -name "*.cpp" -or -name "*.ino" $(BR))
 
-COMMON_CFLAGS = -DADDE=1,0,0 -Wall -Wextra -Wshadow -Wformat -Wconversion -flto -mstackrealign -fno-ident
+COMMON_CFLAGS = -DADDE=1,0,1 -Wall -Wextra -Wshadow -Wformat -Wconversion -flto -mstackrealign -fno-ident
 ifeq (1, $(NO_GPL))
-	COMMON_CFLAGS += -DNO_GPL
+ COMMON_CFLAGS += -DNO_GPL
 endif
 ifeq (1, $(DEBUG))
-	COMMON_CFLAGS += -Og -g3 -ggdb -gdwarf-3 -fvar-tracking-assignments -fbounds-check -fstack-protector-strong
+ COMMON_CFLAGS += -Og -g3 -ggdb -gdwarf-3 -fvar-tracking-assignments -fbounds-check -fstack-protector-strong
 else
-	COMMON_CFLAGS += -O2 -DNDEBUG
+ COMMON_CFLAGS += -O2 -DNDEBUG
 endif
 PATHS = -Isrc
 SYS := $(shell $(CC) -dumpmachine)

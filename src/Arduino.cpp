@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-08
- * @version 2019-05-29
+ * @version 2019-06-28
  * 
  * @todo use busy-wait only with more than 1 core (https://stackoverflow.com/a/150971/2525536)
  * @todo check if we can call ser_write() less often to increase throughput; use separate write thread alternatively
@@ -91,7 +91,7 @@ typedef pthread_t tThread;
 #endif
 
 
-/** Defines the default timeout for remove function calls in milliseconds. */
+/** Defines the default timeout for remote function calls in milliseconds. */
 #define DEFAULT_TIMEOUT 1000
 
 
@@ -664,46 +664,46 @@ static const void * fmsg[MSG_COUNT] = {
 	/* MSGT_CRIT_EARLY_API             */ _T("Critical: Arduino API function call before setup().\n"),
 	/* MSGT_CRIT_CMD_LINE              */ _T("Critical: Failed to get command-line arguments.\n"),
 	/* MSGT_ERR_NO_MEM                 */ _T("Error: Failed to allocate memory.\n"),
-	/* MSGT_ERR_OPT_NO_ARG             */ _T("Error: Option argument is missing for '%s'.\n"),
-	/* MSGT_ERR_OPT_BAD_TIMEOUT        */ _T("Error: Invalid timeout value. (%s)"),
+	/* MSGT_ERR_OPT_NO_ARG             */ _T2("Error: Option argument is missing for '%" PRTCHAR "'.\n"),
+	/* MSGT_ERR_OPT_BAD_TIMEOUT        */ _T2("Error: Invalid timeout value. (%" PRTCHAR ")"),
 	/* MSGT_ERR_OPT_NO_DEVICE          */ _T("Error: Missing device.\n"),
 	/* MSGT_ERR_OPT_AMB_C              */ _T("Error: Unknown or ambiguous option '-%c'.\n"),
-	/* MSGT_ERR_OPT_AMB_S              */ _T("Error: Unknown or ambiguous option '%s'.\n"),
+	/* MSGT_ERR_OPT_AMB_S              */ _T2("Error: Unknown or ambiguous option '%" PRTCHAR "'.\n"),
 	/* MSGT_ERR_OPT_AMB_X              */ _T("Error: Unknown option character '0x%02X'.\n"),
 	/* MSGT_ERR_LOG_CREATE             */ _T("Error: Failed to create log file.\n"),
-	/* MSGT_ERR_REMOTE_CONNECT         */ _T2("Error: Failed to connect to remote device via %" PRUTF8 ".\n"),
+	/* MSGT_ERR_REMOTE_CONNECT         */ _T("Error: Failed to connect to remote device via %s.\n"),
 	/* MSGT_ERR_CREATE_THREAD          */ _T("Error: Failed to create a thread.\n"),
 	/* MSGT_ERR_BROKEN_FRAME           */ _T("Error: Received broken data frame from remote device.\n"),
 	/* MSGT_ERR_OP_MISMATCH            */ _T("Error: OP code of received remote call result does not match.\n"),
 	/* MSGT_ERR_TIMEOUT                */ _T("Error: The operation timed out.\n"),
 	/* MSGT_ERR_REMOTE                 */ _T("Error: Error on remote device.\n"),
-	/* MSGT_ERR_REMOTE_ERROR           */ _T("Error: Error on remote device (type: %s).\n"),
-	/* MSGT_ERR_REMOTE_FRAME           */ _T("Error: Error on remote device (type: %s, seq: %u).\n"),
-	/* MSGT_ERR_REMOTE_CALL            */ _T("Error: Function call on remote device failed (type: %s, seq: %u, op: %s).\n"),
+	/* MSGT_ERR_REMOTE_ERROR           */ _T2("Error: Error on remote device (type: %" PRTCHAR ").\n"),
+	/* MSGT_ERR_REMOTE_FRAME           */ _T2("Error: Error on remote device (type: %" PRTCHAR ", seq: %u).\n"),
+	/* MSGT_ERR_REMOTE_CALL            */ _T2("Error: Function call on remote device failed (type: %" PRTCHAR ", seq: %u, op: %" PRTCHAR ").\n"),
 	/* MSGT_ERR_REMOTE_WRITE           */ _T("Error: Failed to write data to remote device.\n"),
 	/* MSGT_ERR_REMOTE_READ            */ _T("Error: Failed to read data from remote device.\n"),
 	/* MSGT_ERR_REMOTE_RESULT          */ _T("Error: Received an invalid result from remote device.\n"),
 	/* MSGT_ERR_PROT_VERSION           */ _T("Error: Incompatible protocol version on remote device (local: 0x%04X, remote: 0x%04X).\n"),
 	/* MSGT_ERR_PTR_RESULT             */ _T("Error: Remote functions returning pointer values are not supported.\n"),
-	/* MSGT_ERR_REMOTE_INST_COUNT      */ _T("Error: The maximum number of active remote instances reached for %s.\n"),
+	/* MSGT_ERR_REMOTE_INST_COUNT      */ _T2("Error: The maximum number of active remote instances reached for %" PRTCHAR ".\n"),
 	/* MSGT_WARN_EARLY_API             */ _T("Warning: Arduino API function call before setup().\n"),
 	/* MSGT_WARN_SET_PRIO              */ _T("Warning: Failed to set current process priority to high.\n"),
-	/* MSGT_WARN_API_INV_PIN           */ _T("Warning: An invalid pin number was passed to %s (pin: %u).\n"),
-	/* MSGT_WARN_API_INV_INTERRUPT     */ _T("Warning: An invalid interrupt number was passed to %s (interrupt: %u).\n"),
-	/* MSGT_WARN_API_INV_VALUE         */ _T("Warning: An invalid value was passed to %s (val: %u).\n"),
-	/* MSGT_WARN_API_INV_MODE          */ _T("Warning: An invalid mode was passed to %s (mode: %u).\n"),
-	/* MSGT_WARN_API_INV_BITORDER      */ _T("Warning: An invalid bit order was passed to %s (bit order: %u).\n"),
-	/* MSGT_WARN_API_INV_CLOCK_DIV     */ _T("Warning: An invalid clock divider was passed to %s (clock divider: %u).\n"),
-	/* MSGT_WARN_API_INV_COL           */ _T("Warning: An invalid column was passed to %s (col: %i).\n"),
-	/* MSGT_WARN_API_INV_COL_COUNT     */ _T("Warning: An invalid column count was passed to %s (cols: %u).\n"),
-	/* MSGT_WARN_API_INV_ROW           */ _T("Warning: An invalid row was passed to %s (row: %i).\n"),
-	/* MSGT_WARN_API_INV_ROW_COUNT     */ _T("Warning: An invalid row count was passed to %s (rows: %u).\n"),
-	/* MSGT_WARN_API_INV_CHAR_SIZE     */ _T("Warning: An invalid character size was passed to %s (charSize: 0x%02X).\n"),
-	/* MSGT_WARN_API_INV_CHAR_LOCATION */ _T("Warning: An invalid character location was passed to %s (location: %u).\n"),
-	/* MSGT_WARN_API_INV_INSTANCE      */ _T("Warning: An invalid instance was accessed in %s (instance: %u).\n"),
-	/* MSGT_WARN_API_MAX_INTERRUPT     */ _T("Warning: The maximum number of active interrupts has been reached in %s (interrupt: %u).\n"),
+	/* MSGT_WARN_API_INV_PIN           */ _T2("Warning: An invalid pin number was passed to %" PRTCHAR " (pin: %u).\n"),
+	/* MSGT_WARN_API_INV_INTERRUPT     */ _T2("Warning: An invalid interrupt number was passed to %" PRTCHAR " (interrupt: %u).\n"),
+	/* MSGT_WARN_API_INV_VALUE         */ _T2("Warning: An invalid value was passed to %" PRTCHAR " (val: %u).\n"),
+	/* MSGT_WARN_API_INV_MODE          */ _T2("Warning: An invalid mode was passed to %" PRTCHAR " (mode: %u).\n"),
+	/* MSGT_WARN_API_INV_BITORDER      */ _T2("Warning: An invalid bit order was passed to %" PRTCHAR " (bit order: %u).\n"),
+	/* MSGT_WARN_API_INV_CLOCK_DIV     */ _T2("Warning: An invalid clock divider was passed to %" PRTCHAR " (clock divider: %u).\n"),
+	/* MSGT_WARN_API_INV_COL           */ _T2("Warning: An invalid column was passed to %" PRTCHAR " (col: %i).\n"),
+	/* MSGT_WARN_API_INV_COL_COUNT     */ _T2("Warning: An invalid column count was passed to %" PRTCHAR " (cols: %u).\n"),
+	/* MSGT_WARN_API_INV_ROW           */ _T2("Warning: An invalid row was passed to %" PRTCHAR " (row: %i).\n"),
+	/* MSGT_WARN_API_INV_ROW_COUNT     */ _T2("Warning: An invalid row count was passed to %" PRTCHAR " (rows: %u).\n"),
+	/* MSGT_WARN_API_INV_CHAR_SIZE     */ _T2("Warning: An invalid character size was passed to %" PRTCHAR " (charSize: 0x%02X).\n"),
+	/* MSGT_WARN_API_INV_CHAR_LOCATION */ _T2("Warning: An invalid character location was passed to %" PRTCHAR " (location: %u).\n"),
+	/* MSGT_WARN_API_INV_INSTANCE      */ _T2("Warning: An invalid instance was accessed in %" PRTCHAR " (instance: %u).\n"),
+	/* MSGT_WARN_API_MAX_INTERRUPT     */ _T2("Warning: The maximum number of active interrupts has been reached in %" PRTCHAR " (interrupt: %u).\n"),
 	/* MSGT_INFO_SIGTERM               */ _T("Info: Received signal. Finishing current operation.\n"),
-	/* MSGT_INFO_OP_UNSUPPORTED        */ _T("Info: OP code is not supported by the remote device (op: %s).\n")
+	/* MSGT_INFO_OP_UNSUPPORTED        */ _T2("Info: OP code is not supported by the remote device (op: %" PRTCHAR ").\n")
 };
 
 
@@ -977,7 +977,7 @@ struct CStrArg {
 		{
 			TCHAR * str = _tfromUtf8N(this->ptr, this->size);
 			if (str == NULL) return -1;
-			const int res = _ftprintf(fd, _T("%s"), str);
+			const int res = _ftprintf(fd, _T2("%" PRTCHAR), str);
 			if (str != reinterpret_cast<const TCHAR *>(this->ptr)) free(str);
 			if (res <= 0) return res;
 			ret += res;
@@ -998,7 +998,7 @@ template <> struct IsPtrArg<CStrArg> : true_type {};
 template <typename T, typename U>
 bool checkAndWrite(const OpCode::Type op, const size_t arg, const T mapped, const U raw) {
 	if (sizeof(T) != sizeof(U) && mapped != raw) {
-		printToLog(_T("DEV\tout\ttrunc type\t%s\t%u\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(sizeof(U)), static_cast<unsigned int>(sizeof(T)));
+		printToLog(_T2("DEV\tout\ttrunc type\t%" PRTCHAR "\t%u\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(sizeof(U)), static_cast<unsigned int>(sizeof(T)));
 	}
 	return framing.write(mapped);
 }
@@ -1012,7 +1012,7 @@ typename enable_if<is_integral<typename T::type>::value && is_unsigned<typename 
 	case 4: return checkAndWrite(op, arg, static_cast<uint32_t>(val.value), val.value);
 	case 8: return checkAndWrite(op, arg, static_cast<uint64_t>(val.value), val.value);
 	default:
-		printToLog(_T("DEV\tout\tinvalid type\t%s\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
+		printToLog(_T2("DEV\tout\tinvalid type\t%" PRTCHAR "\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
 		return false;
 	}
 }
@@ -1026,7 +1026,7 @@ typename enable_if<is_integral<typename T::type>::value && is_signed<typename T:
 	case 4: return checkAndWrite(op, arg, static_cast<int32_t>(val.value), val.value);
 	case 8: return checkAndWrite(op, arg, static_cast<int64_t>(val.value), val.value);
 	default:
-		printToLog(_T("DEV\tout\tinvalid type\t%s\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
+		printToLog(_T2("DEV\tout\tinvalid type\t%" PRTCHAR "\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
 		return false;
 	}
 }
@@ -1039,7 +1039,7 @@ typename enable_if<is_floating_point<typename T::type>::value, bool>::type write
 	case 8: return checkAndWrite(op, arg, static_cast<double>(val.value), val.value);
 	case 16: return checkAndWrite(op, arg, static_cast<long double>(val.value), val.value);
 	default:
-		printToLog(_T("DEV\tout\tinvalid type\t%s\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
+		printToLog(_T2("DEV\tout\tinvalid type\t%" PRTCHAR "\t%u\t%u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size()));
 		return false;
 	}
 }
@@ -1049,7 +1049,7 @@ template <typename T>
 typename enable_if<IsPtrArg<T>::value, bool>::type writeRemoteType(const OpCode::Type op, const size_t arg, const T val) {
 	const uint16_t size = static_cast<uint16_t>(val.size);
 	if (size != val.size) {
-		printToLog(_T("DEV\tout\ttrunc arr\t%s\t%u\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size), static_cast<unsigned int>(size));
+		printToLog(_T2("DEV\tout\ttrunc arr\t%" PRTCHAR "\t%u\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(arg), static_cast<unsigned int>(val.size), static_cast<unsigned int>(size));
 	}
 	if ( ! checkAndWrite(op, arg, size, val.size) ) return false;
 	for (uint16_t i = 0; i < size; i++) {
@@ -1168,10 +1168,10 @@ bool checkAndReadFrameValue(const OpCode::Type op, uint8_t * & buf, size_t & len
 	const bool res = readFrameValue(buf, len, mapped);
 	raw = static_cast<U>(mapped);
 	if (sizeof(T) != sizeof(U) && mapped != raw) {
-		printToLog(_T("DEV\tin\ttrunc type\t%s\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(sizeof(T)), static_cast<unsigned int>(sizeof(U)));
+		printToLog(_T2("DEV\tin\ttrunc type\t%" PRTCHAR "\t%u -> %u\n"), opStr[op], static_cast<unsigned int>(sizeof(T)), static_cast<unsigned int>(sizeof(U)));
 	}
 	if (flogGuard != NULL && flog != NULL) {
-		printToLogWithMore(_T("DEV\tin\tcallRes\t%s"), opStr[op]);
+		printToLogWithMore(_T2("DEV\tin\tcallRes\t%" PRTCHAR ""), opStr[op]);
 		printArgsToLog(::adde::_V<U>(raw));
 		fflush(flog);
 		flogGuard->unlock();
@@ -1197,7 +1197,7 @@ bool extractCallResult(const OpCode::Type op, uint8_t * & buf, size_t & len, R &
 	case 4: { uint32_t u32 = 0; return checkAndReadFrameValue(op, buf, len, u32, out.value); }
 	case 8: { uint64_t u64 = 0; return checkAndReadFrameValue(op, buf, len, u64, out.value); }
 	default:
-		printToLog(_T("DEV\tin\tinvalid type\t%s\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
+		printToLog(_T2("DEV\tin\tinvalid type\t%" PRTCHAR "\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
 		return false;
 	}
 }
@@ -1220,7 +1220,7 @@ bool extractCallResult(const OpCode::Type op, uint8_t * & buf, size_t & len, R &
 	case 4: { int32_t i32 = 0; return checkAndReadFrameValue(op, buf, len, i32, out.value); }
 	case 8: { int64_t i64 = 0; return checkAndReadFrameValue(op, buf, len, i64, out.value); }
 	default:
-		printToLog(_T("DEV\tin\tinvalid type\t%s\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
+		printToLog(_T2("DEV\tin\tinvalid type\t%" PRTCHAR "\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
 		return false;
 	}
 }
@@ -1242,7 +1242,7 @@ bool extractCallResult(const OpCode::Type op, uint8_t * & buf, size_t & len, R &
 	case 8: { double f64 = 0.0; return checkAndReadFrameValue(op, buf, len, f64, out.value); }
 	case 16: { long double f80 = 0.0L; return checkAndReadFrameValue(op, buf, len, f80, out.value); }
 	default:
-		printToLog(_T("DEV\tin\tinvalid type\t%s\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
+		printToLog(_T2("DEV\tin\tinvalid type\t%" PRTCHAR "\t%u\n"), opStr[op], static_cast<unsigned int>(out.size()));
 		return false;
 	}
 }
@@ -1300,7 +1300,7 @@ template <typename R, typename ...Args>
 	framesGuard->unlock();
 	locked = false;
 	if (flogGuard != NULL && flog != NULL) {
-		printToLogWithMore(_T("DEV\tout\tcall\t%s"), opStr[op]);
+		printToLogWithMore(_T2("DEV\tout\tcall\t%" PRTCHAR), opStr[op]);
 		printArgsToLog(args...);
 		fflush(flog);
 		flogGuard->unlock();
@@ -1476,11 +1476,11 @@ static int addeMain(int argc, TCHAR ** argv) {
 					_ftprintf(ferr, MSGT(MSGT_ERR_NO_MEM));
 					goto onError;
 				}
-				_ftprintf(ferr, _T("%s"), text);
+				_ftprintf(ferr, _T2("%" PRTCHAR), text);
 				if (text != reinterpret_cast<const TCHAR *>(licenseText)) free(text);
 			}
 #else /* !UNICODE */
-			_ftprintf(ferr, _T("%s"), licenseText);
+			_ftprintf(ferr, _T2("%" PRTCHAR), licenseText);
 #endif /* UNICODE */
 			signalReceived++;
 			exit(EXIT_SUCCESS);
@@ -1647,7 +1647,7 @@ static int addeMain(int argc, TCHAR ** argv) {
 	
 onConnect:
 	/* connect to remote device */
-	printToLog(_T2("DEV\topen\t%" PRUTF8 "\n"), device);
+	printToLog(_T2("DEV\topen\t%s\n"), device);
 	remoteConn = ser_create(device, 115200, SFR_8N1, SFC_NONE);
 	if (remoteConn == NULL) {
 		printToErr(MSGT(MSGT_ERR_REMOTE_CONNECT), device);
@@ -2247,7 +2247,7 @@ static bool writeToRemoteHandler(const uint8_t val, const bool eof) {
 					hexBuf[(3 * i) + 2] = _T(' ');
 				}
 				hexBuf[(res * 3) - 1] = 0;
-				printToLog(_T("DEV\tout\tdump\t%s\n"), hexBuf);
+				printToLog(_T2("DEV\tout\tdump\t%" PRTCHAR "\n"), hexBuf);
 			}
 		}
 		if (res > 0) {
@@ -2277,7 +2277,7 @@ static bool writeToRemoteHandler(const uint8_t val, const bool eof) {
 static void readFromRemoteHandler(const uint8_t seq, uint8_t * buf, const size_t len, const bool err) {
 	if (verbose > 1 && flog != NULL) {
 		printToLog(
-			_T("DEV\tin\tframe\t%s\t%u\t%u\t%s\t%s\n"),
+			_T2("DEV\tin\tframe\t%" PRTCHAR "\t%u\t%u\t%" PRTCHAR "\t%" PRTCHAR "\n"),
 			err ? _T("err") : _T("ok"),
 			static_cast<unsigned int>(len),
 			static_cast<unsigned int>(seq),
@@ -2357,11 +2357,11 @@ static void readFromRemoteHandler(const uint8_t seq, uint8_t * buf, const size_t
 			if (ptr == endPtr) {
 				printToLog(_T("DEV\tin\terr\n"));
 			} else if ((ptr + 1) == endPtr) {
-				printToLog(_T("DEV\tin\terr\t%s\n"), errStr[PCF_MIN(ptr[0], static_cast<uint8_t>(ErrorCode::COUNT))]);
+				printToLog(_T2("DEV\tin\terr\t%" PRTCHAR "\n"), errStr[PCF_MIN(ptr[0], static_cast<uint8_t>(ErrorCode::COUNT))]);
 			} else if ((ptr + 2) == endPtr) {
-				printToLog(_T("DEV\tin\terr\t%s\t%u\n"), errStr[PCF_MIN(ptr[0], static_cast<uint8_t>(ErrorCode::COUNT))], static_cast<unsigned int>(ptr[1]));
+				printToLog(_T2("DEV\tin\terr\t%" PRTCHAR "\t%u\n"), errStr[PCF_MIN(ptr[0], static_cast<uint8_t>(ErrorCode::COUNT))], static_cast<unsigned int>(ptr[1]));
 			} else {
-				printToLog(_T("DEV\tin\terr\t%s\t%u\t%s\n"),
+				printToLog(_T2("DEV\tin\terr\t%" PRTCHAR "\t%u\t%" PRTCHAR "\n"),
 					errStr[PCF_MIN(ptr[0], static_cast<uint8_t>(ErrorCode::COUNT))],
 					static_cast<unsigned int>(ptr[1]),
 					opStr[PCF_MIN(ptr[2], static_cast<uint8_t>(OpCode::COUNT))]
@@ -2408,7 +2408,7 @@ static void readFromRemoteThread(void * /* data */) {
 					hexBuf[(3 * i) + 2] = _T(' ');
 				}
 				hexBuf[(res * 3) - 1] = 0;
-				printToLog(_T("DEV\tin\tdump\t%s\n"), hexBuf);
+				printToLog(_T2("DEV\tin\tdump\t%" PRTCHAR "\n"), hexBuf);
 			}
 		}
 		if (res == -1) {
@@ -2418,7 +2418,7 @@ static void readFromRemoteThread(void * /* data */) {
 		}
 		for (ssize_t i = 0; i < res; i++) {
 			if ( ! framing.read(buf[i], readFromRemoteHandler) ) {
-				printToLog(_T("DEV\tin\terr\t%s\n"), errStr[ErrorCode::BROKEN_FRAME]);
+				printToLog(_T2("DEV\tin\terr\t%" PRTCHAR "\n"), errStr[ErrorCode::BROKEN_FRAME]);
 				if (verbose > 0) printToErr(MSGT(MSGT_ERR_BROKEN_FRAME));
 			}
 		}
@@ -2875,7 +2875,7 @@ bool _FV<_GET_DEV_NAME>::set(uint8_t * & buf, size_t & len) {
 		return false;
 	}
 	/* output string to log */
-	printToLog(_T("DEV\tname\t%s\n"), str);
+	printToLog(_T2("DEV\tname\t%" PRTCHAR "\n"), str);
 	if (static_cast<void *>(str) != static_cast<void *>(buf)) free(str);
 	return true;
 }
@@ -3774,7 +3774,7 @@ ConsoleSerial::~ConsoleSerial() {}
  */
 void ConsoleSerial::begin(unsigned long speed) {
 	checkInitializedMain();
-	printToLog(_T("HOST\tout\t%s\t%lu\n"), opStr[OpCode::HARDWARE_SERIAL_BEGIN1], speed);
+	printToLog(_T2("HOST\tout\t%" PRTCHAR "\t%lu\n"), opStr[OpCode::HARDWARE_SERIAL_BEGIN1], speed);
 }
 
 
@@ -3786,7 +3786,7 @@ void ConsoleSerial::begin(unsigned long speed) {
  */
 void ConsoleSerial::begin(unsigned long speed, uint8_t mode) {
 	checkInitializedMain();
-	printToLog(_T("HOST\tout\t%s\t%lu\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_BEGIN2], speed, static_cast<unsigned int>(mode));
+	printToLog(_T2("HOST\tout\t%" PRTCHAR "\t%lu\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_BEGIN2], speed, static_cast<unsigned int>(mode));
 }
 
 
@@ -3795,7 +3795,7 @@ void ConsoleSerial::begin(unsigned long speed, uint8_t mode) {
  */
 void ConsoleSerial::end() {
 	checkInitializedMain();
-	printToLog(_T("HOST\tout\t%s\n"), opStr[OpCode::HARDWARE_SERIAL_END]);
+	printToLog(_T2("HOST\tout\t%" PRTCHAR "\n"), opStr[OpCode::HARDWARE_SERIAL_END]);
 }
 
 
@@ -3807,7 +3807,7 @@ void ConsoleSerial::end() {
 int ConsoleSerial::available() {
 	checkInitializedMain();
 	const int res = (conPeekBuffer >= 0) ? 1 : 0;
-	printToLog(_T("HOST\tin\t%s\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_AVAILABLE], res);
+	printToLog(_T2("HOST\tin\t%" PRTCHAR "\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_AVAILABLE], res);
 	return res;
 }
 
@@ -3820,7 +3820,7 @@ int ConsoleSerial::available() {
 int ConsoleSerial::availableForWrite() {
 	checkInitializedMain();
 	const int res = (fout != NULL && feof(fout) == 0 && ferror(fout) == 0) ? 256 : 0;
-	printToLog(_T("HOST\tin\t%s\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_AVAILABLE_FOR_WRITE], res);
+	printToLog(_T2("HOST\tin\t%" PRTCHAR "\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_AVAILABLE_FOR_WRITE], res);
 	return res;
 }
 
@@ -3833,7 +3833,7 @@ int ConsoleSerial::availableForWrite() {
 int ConsoleSerial::peek() {
 	checkInitializedMain();
 	const int res = conPeekBuffer;
-	printToLog(_T("HOST\tin\t%s\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_PEEK], res);
+	printToLog(_T2("HOST\tin\t%" PRTCHAR "\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_PEEK], res);
 	return res;
 }
 
@@ -3855,7 +3855,7 @@ int ConsoleSerial::read() {
 			break;
 		}
 	}
-	printToLog(_T("HOST\tin\t%s\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_READ], res);
+	printToLog(_T2("HOST\tin\t%" PRTCHAR "\t%i\n"), opStr[OpCode::HARDWARE_SERIAL_READ], res);
 	return res;
 }
 
@@ -3866,7 +3866,7 @@ int ConsoleSerial::read() {
 void ConsoleSerial::flush() {
 	checkInitializedMain();
 	if (fout != NULL) fflush(fout);
-	printToLog(_T("HOST\tout\t%s\n"), opStr[OpCode::HARDWARE_SERIAL_FLUSH]);
+	printToLog(_T2("HOST\tout\t%" PRTCHAR "\n"), opStr[OpCode::HARDWARE_SERIAL_FLUSH]);
 }
 
 
@@ -3879,9 +3879,9 @@ void ConsoleSerial::flush() {
 size_t ConsoleSerial::write(uint8_t val) {
 	checkInitializedMain();
 	if (fout == NULL) return 0;
-	printToLog(_T("HOST\tout\t%s\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_WRITE], static_cast<unsigned int>(val));
+	printToLog(_T2("HOST\tout\t%" PRTCHAR "\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_WRITE], static_cast<unsigned int>(val));
 	const size_t res = static_cast<size_t>(fwrite(&val, 1, 1, fout));
-	printToLog(_T("HOST\tin\t%s\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_WRITE], static_cast<unsigned int>(res));
+	printToLog(_T2("HOST\tin\t%" PRTCHAR "\t%u\n"), opStr[OpCode::HARDWARE_SERIAL_WRITE], static_cast<unsigned int>(res));
 	return res;
 }
 
