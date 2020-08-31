@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-07
- * @version 2019-05-01
+ * @version 2019-10-12
  * 
  * CRC16-CCITT used in HDLC (see RFC 1662).
  */
@@ -71,15 +71,6 @@ public:
 	{
 		this->operator() (first, last);
 	}
-	
-	/**
-	 * Copy constructor.
-	 * 
-	 * @param[in] o - instance to copy
-	 */
-	Crc16(const Crc16 & o):
-		val(o.val)
-	{}
 	
 	/**
 	 * Calculates the CRC16 over the given byte.

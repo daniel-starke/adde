@@ -22,7 +22,7 @@ The following example demonstrates the needed steps and places to modify to a th
     	checkInitializedMain(); /* needed to ensure the function is available before setup() is called */
     	using namespace ::adde; /* for _void */
     	checkDigitalPin(_T("noTone()"), pin); /* debug helper which checks if the given pin is a digital pin (optional feature) */
-    	callWith<_void>(OpCode::NO_TONE); /* actual call to the remote device */
+    	callWith<_void>(OpCode::NO_TONE, _uint8_t(pin)); /* actual call to the remote device */
     }
 ```
 

@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-04-15
-* @version 2019-05-01
+ * @version 2019-05-01
  */
 #ifndef __ADDE_LIQUIDCRYSTAL_H__
 #define __ADDE_LIQUIDCRYSTAL_H__

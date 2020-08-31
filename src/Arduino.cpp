@@ -1,12 +1,13 @@
 /**
  * @file Arduino.cpp
  * @author Daniel Starke
- * @copyright Copyright 2019 Daniel Starke
+ * @copyright Copyright 2019-2020 Daniel Starke
  * @date 2019-03-08
- * @version 2019-06-28
+ * @version 2020-08-30
  * 
  * @todo use busy-wait only with more than 1 core (https://stackoverflow.com/a/150971/2525536)
  * @todo check if we can call ser_write() less often to increase throughput; use separate write thread alternatively
+ * @todo check if the delay() call crash (executing address 0) is caused by a GCC 9.2.0 compiler bug or not (-Og instead of -O2 works)
  */
 #include <signal.h>
 #include <stdarg.h>
@@ -2742,7 +2743,7 @@ void _FVI::waitForResult() {
 	/* wait for result */
 	const unsigned long timePassed = static_cast<unsigned long>(millis() - this->start);
 	const uint64_t cpuIntvl = getCpuInterval();
-	const uint64_t shortTimeout = PCF_MAX(UINT64_C(1), cpuIntvl / UINT64_C(1000));
+	const size_t shortTimeout = static_cast<size_t>(PCF_MAX(UINT64_C(1), cpuIntvl / UINT64_C(1000)));
 	if (timePassed >= static_cast<unsigned long>(this->timeout) || ( ! spinWaitDelay(this->valid, true, shortTimeout, static_cast<unsigned long>(this->timeout - timePassed)) )) {
 		if (verbose > 0) printToErr(MSGT(MSGT_ERR_TIMEOUT));
 		signalReceived += 100;
@@ -3601,7 +3602,7 @@ void noTone(uint8_t pin) {
 	checkInitializedMain();
 	using namespace ::adde;
 	checkDigitalPin(_T("noTone()"), pin);
-	callWith<_void>(OpCode::NO_TONE);
+	callWith<_void>(OpCode::NO_TONE, _uint8_t(pin));
 }
 
 

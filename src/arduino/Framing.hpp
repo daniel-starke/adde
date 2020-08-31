@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-02-20
- * @version 2019-05-14
+ * @version 2019-12-12
  */
 #ifndef __FRAMING_HPP__
 #define __FRAMING_HPP__
@@ -11,10 +11,10 @@
 #include <stdint.h>
 #include "Crc16.hpp"
 #include "Meta.hpp"
-#if defined(ADDE)
-extern "C" unsigned long millis(void);
-#else
+#if defined(ARDUINO)
 #include "Arduino.h"
+#else
+extern "C" unsigned long millis(void);
 #endif
 
 
@@ -28,7 +28,7 @@ extern "C" unsigned long millis(void);
 /**
  * Simple implementation of a RFC 1662 like framing protocol. The data is protected with a CRC16 over the
  * unquoted payload. A frame is given in the following format with all values being encoded big endian:
- * <SEP><Sequence><Quoted Payload><CRC16><SEP>
+ * <SEP><<Sequence>Quoted Payload><CRC16><SEP>
  * 
  * @tparam MaxFrameSize - maximum size of the receiving unquoted payload data
  * @remarks The CRC check takes around 7us per byte on an ATmega32U4 at 16 MHz.
@@ -78,6 +78,7 @@ public:
 	 */
 	template <typename Fn>
 	bool read(const uint8_t val, Fn fn) {
+		retry:
 		switch (this->state) {
 		case ST_START:
 			if (val == SEP) this->state = ST_SEP;
@@ -108,12 +109,27 @@ public:
 			}
 			break;
 		case ST_ESC:
-			if (this->size >= MaxFrameSize) return false;
-			this->buffer[this->size++] = uint8_t(val ^ FLIP);
-			this->state = ST_SEP;
+			switch (val) {
+			case ESC:
+			case SEP:
+				this->state = ST_SEP;
+				goto retry;
+			default:
+				if (this->size >= MaxFrameSize) return false;
+				this->buffer[this->size++] = uint8_t(val ^ FLIP);
+				this->state = ST_SEP;
+				break;
+			}
 			break;
 		}
 		return true;
+	}
+	
+	/**
+	 * Ensures that the next transmission sends the frame separator at the beginning.
+	 */
+	void setFirstOut() {
+		this->firstOut = true;
 	}
 
 	/**

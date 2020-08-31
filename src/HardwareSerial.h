@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-04-12
-* @version 2019-05-01
+ * @version 2019-05-01
  */
 #ifndef __ADDE_HARDWARESERIAL_H__
 #define __ADDE_HARDWARESERIAL_H__

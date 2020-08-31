@@ -1,9 +1,9 @@
 /**
  * @file arduino.hpp
  * @author Daniel Starke
- * @copyright Copyright 2019 Daniel Starke
+ * @copyright Copyright 2019-2020 Daniel Starke
  * @date 2019-02-20
- * @version 2019-04-15
+ * @version 2020-08-30
  */
 #ifndef __ARDUINO_HPP__
 #define __ARDUINO_HPP__
@@ -218,47 +218,6 @@ void handleError(const uint8_t seq, const ErrorCode::Type type, Args... args) {
 	framing.write(uint8_t(type));
 	framing.write(args...);
 	framing.endTransmission();
-}
-
-
-/**
- * Return the result of an function call to the host.
- * 
- * @param[in,out] hal - frame handler argument list
- * @param[in] val - function return value
- * @return true on success, false on function argument extraction error
- * @tparam T - encapsulated result type
- */
-template <typename T>
-ErrorCode::Type handleResult(FrameHandlerArgs & hal, const CallResult<T> & val) {
-	if ( val.success ) {
-		framing.beginTransmission(hal.seq);
-		framing.write(uint8_t(ResultCode::RESULT));
-		framing.write(uint8_t(hal.op));
-		framing.write(val.result);
-		framing.endTransmission();
-	}
-	return val.success ? ErrorCode::SUCCESS : ErrorCode::SIGNATURE_MISMATCH;
-}
-
-
-/**
- * Return the result of an function call to the host.
- * 
- * @param[in,out] hal - frame handler argument list
- * @param[in] val - function return value
- * @return true on success, false on function argument extraction error
- * @remarks Specialization for functions with no return value.
- */
-template <>
-ErrorCode::Type handleResult(FrameHandlerArgs & hal, const CallResult<void> & val) {
-	if ( val.success ) {
-		framing.beginTransmission(hal.seq);
-		framing.write(uint8_t(ResultCode::RESULT));
-		framing.write(uint8_t(hal.op));
-		framing.endTransmission();
-	}
-	return val.success ? ErrorCode::SUCCESS : ErrorCode::SIGNATURE_MISMATCH;
 }
 
 

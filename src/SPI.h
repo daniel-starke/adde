@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-04-13
-* @version 2019-05-01
+ * @version 2019-05-01
  */
 #ifndef __ADDE_SPI_H__
 #define __ADDE_SPI_H__

@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-08
-* @version 2019-04-22
+ * @version 2019-04-22
  * 
  * @code{.c}
  * #include <stdio.h>

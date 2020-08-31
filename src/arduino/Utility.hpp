@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-02-28
- * @version 2019-05-02
+ * @version 2020-08-30
  */
 #ifndef __UTILITY_HPP__
 #define __UTILITY_HPP__
@@ -42,6 +42,11 @@ template <typename T>
 struct CallResult {
 	bool success;
 	T result;
+	
+	explicit CallResult():
+		success(false),
+		result(T())
+	{}
 };
 
 
@@ -49,6 +54,10 @@ struct CallResult {
 template <>
 struct CallResult<void> {
 	bool success;
+	
+	explicit CallResult():
+		success(false)
+	{}
 };
 
 
@@ -143,12 +152,6 @@ static typename enable_if<(i < sizeof...(Args)), bool>::type extractArgs(FrameHa
 }
 
 
-/* Template based index sequence storage and generator to unpack/iterate through tuples. */
-template <size_t ...> struct ArgIndexSeq {};
-template <size_t i, size_t ...rest> struct ArgIndexGen : ArgIndexGen<i - 1, i - 1, rest...> { };
-template <size_t ...rest> struct ArgIndexGen<0, rest...> { typedef ArgIndexSeq<rest...> type; };
-
-
 /**
  * Helper function to extract the function arguments from the given tuple and call the passed
  * function with those arguments passed. The return value of the function is returned.
@@ -169,7 +172,7 @@ template <
 	typename R = typename return_type_of<typename remove_pointer<Fn>::type>::type,
 	typename enable_if<!is_void<R>::value>::type * = nullptr
 >
-static void callUnpacked(CallResult<R> & res, Fn fn, const T & packedArgs, const ArgIndexSeq<i...>) {
+static void callUnpacked(CallResult<R> & res, Fn fn, const T & packedArgs, const index_sequence<i...>) {
 	res.result = fn(get<i>(packedArgs)...);
 }
 
@@ -194,7 +197,7 @@ template <
 	typename R = typename return_type_of<typename remove_pointer<Fn>::type>::type,
 	typename enable_if<is_void<R>::value>::type * = nullptr
 >
-static void callUnpacked(CallResult<R> &, Fn fn, const T & packedArgs, const ArgIndexSeq<i...>) {
+static void callUnpacked(CallResult<R> &, Fn fn, const T & packedArgs, const index_sequence<i...>) {
 	fn(get<i>(packedArgs)...);
 }
 
@@ -222,7 +225,7 @@ template <
 	typename R = typename return_type_of<typename remove_pointer<Fn>::type>::type,
 	typename enable_if<!is_void<R>::value>::type * = nullptr
 >
-static void callUnpacked(CallResult<R> & res, Fn fn, O & obj, const T & packedArgs, const ArgIndexSeq<i...>) {
+static void callUnpacked(CallResult<R> & res, Fn fn, O & obj, const T & packedArgs, const index_sequence<i...>) {
 	res.result = (obj.*fn)(get<i>(packedArgs)...);
 }
 
@@ -250,7 +253,7 @@ template <
 	typename R = typename return_type_of<typename remove_pointer<Fn>::type>::type,
 	typename enable_if<is_void<R>::value>::type * = nullptr
 >
-static void callUnpacked(CallResult<R> & res, Fn fn, O & obj, const T & packedArgs, const ArgIndexSeq<i...>) {
+static void callUnpacked(CallResult<R> & /* res */, Fn fn, O & obj, const T & packedArgs, const index_sequence<i...>) {
 	(obj.*fn)(get<i>(packedArgs)...);
 }
 
@@ -270,7 +273,7 @@ static CallResult<R> callWith(FrameHandlerArgs & hal, R(* fn)(Args...)) {
 	CallResult<R> res;
 	tuple<Args...> args;
 	res.success = extractArgs(hal, args);
-	if ( res.success ) callUnpacked(res, fn, args, typename ArgIndexGen<sizeof...(Args)>::type());
+	if ( res.success ) callUnpacked(res, fn, args, typename make_index_sequence<sizeof...(Args)>::type());
 	return res;
 }
 
@@ -310,7 +313,7 @@ static CallResult<R> callWith(FrameHandlerArgs & hal, R(C::* fn)(Args...), C & o
 	CallResult<R> res;
 	tuple<Args...> args;
 	res.success = extractArgs(hal, args);
-	if ( res.success ) callUnpacked(res, fn, obj, args, typename ArgIndexGen<sizeof...(Args)>::type());
+	if ( res.success ) callUnpacked(res, fn, obj, args, typename make_index_sequence<sizeof...(Args)>::type());
 	return res;
 }
 
@@ -332,7 +335,7 @@ static CallResult<R> callWith(FrameHandlerArgs & hal, R(C::* fn)(Args...) const,
 	CallResult<R> res;
 	tuple<Args...> args;
 	res.success = extractArgs(hal, args);
-	if ( res.success ) callUnpacked(res, fn, obj, args, typename ArgIndexGen<sizeof...(Args)>::type());
+	if ( res.success ) callUnpacked(res, fn, obj, args, typename make_index_sequence<sizeof...(Args)>::type());
 	return res;
 }
 

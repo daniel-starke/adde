@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-06
- * @version 2019-04-23
+ * @version 2019-07-08
  * 
  * Target platform configuration.
  */
@@ -94,10 +94,10 @@
 #define HAS_handleAnalogRead
 #define HAS_handleAnalogReference
 #define HAS_handleAnalogWrite
-#if defined(ARDUINO_SAM_DUE)
+#if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_ESP32)
 #define HAS_handleAnalogReadResolution
 #define HAS_handleAnalogWriteResolution
-#endif /* ARDUINO_SAM_DUE */
+#endif /* ARDUINO_SAM_DUE || ARDUINO_ARCH_ESP32 */
 #define HAS_handlePulseIn
 #define HAS_handlePulseInLong
 #define HAS_handleShiftIn

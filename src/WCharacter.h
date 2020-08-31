@@ -1,10 +1,10 @@
 /**
-* @file WCharacter.h
-* @author Daniel Starke
-* @copyright Copyright 2019 Daniel Starke
-* @date 2019-03-11
-* @version 2019-04-22
-*/
+ * @file WCharacter.h
+ * @author Daniel Starke
+ * @copyright Copyright 2019 Daniel Starke
+ * @date 2019-03-11
+ * @version 2019-04-22
+ */
 #ifndef __ADDE_WCHARACTER_H__
 #define __ADDE_WCHARACTER_H__
 

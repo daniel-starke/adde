@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-08
-* @version 2019-04-22
+ * @version 2019-04-22
  */
 #ifndef __ADDE_PINS_ARDUINO_H__
 #define __ADDE_PINS_ARDUINO_H__

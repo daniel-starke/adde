@@ -12,7 +12,7 @@ BR := \)
 override USR := $(USR:/=)
 SRC = $(wildcard src/*.c) $(wildcard src/*.cpp) $(wildcard src/utility/*.c) $(shell find $(USR) -type f $(BL) -name "*.c" -or -name "*.cpp" -or -name "*.ino" $(BR))
 
-COMMON_CFLAGS = -DADDE=1,0,1 -Wall -Wextra -Wshadow -Wformat -Wconversion -flto -mstackrealign -fno-ident
+COMMON_CFLAGS = -DADDE=1,0,2 -Wall -Wextra -Wshadow -Wformat -Wconversion -flto -mstackrealign -fno-ident
 ifeq (1, $(NO_GPL))
  COMMON_CFLAGS += -DNO_GPL
 endif

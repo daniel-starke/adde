@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-04-16
-* @version 2019-04-22
+ * @version 2019-04-22
  */
 #ifndef __ADDE_CONSOLESERIAL_H__
 #define __ADDE_CONSOLESERIAL_H__

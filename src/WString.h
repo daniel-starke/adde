@@ -1,10 +1,10 @@
 /**
-* @file WString.h
-* @author Daniel Starke
-* @copyright Copyright 2019 Daniel Starke
-* @date 2019-03-10
-* @version 2019-04-22
-*/
+ * @file WString.h
+ * @author Daniel Starke
+ * @copyright Copyright 2019 Daniel Starke
+ * @date 2019-03-10
+ * @version 2019-04-22
+ */
 #ifndef __ADDE_WSTRING_H__
 #define __ADDE_WSTRING_H__
 

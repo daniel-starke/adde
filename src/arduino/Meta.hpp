@@ -1,9 +1,9 @@
 /**
  * @file Meta.hpp
  * @author Daniel Starke
- * @copyright Copyright 2019 Daniel Starke
+ * @copyright Copyright 2019-2020 Daniel Starke
  * @date 2019-02-21
- * @version 2019-05-04
+ * @version 2020-08-30
  * 
  * Type related helpers usually found in the C++11 standard template library but designed for
  * embedded environments.
@@ -501,6 +501,12 @@ struct conditional_integral_constant<false, T, TrueValue, FalseValue> {
 };
 
 
+/* is_any_of */
+template <typename T, typename T0, typename ...Ts>
+struct is_any_of : integral_constant<bool, conditional<is_same<T, T0>::value, true_type, is_any_of<T, Ts...> >::type::value> {};
+template <typename T, typename T0> struct is_any_of<T, T0> : is_same<T, T0>::type {};
+
+
 /* decay */
 template <typename T>
 class decay {
@@ -534,6 +540,39 @@ template <typename ...> struct parameter_pack {};
 
 /* declval() */
 template <typename T> typename add_rvalue_reference<T>::type declval();
+
+
+/* integer_sequence */
+template <typename T, T... N>
+struct integer_sequence {
+	typedef T value_type;
+	static_assert(is_integral<T>::value, "integer_sequence can only be instantiated with an integral type");
+	static constexpr size_t size() { return (sizeof...(N)); }
+};
+
+
+/* index_sequence */
+template <size_t... N> struct index_sequence : integer_sequence<size_t, N...> {};
+
+
+/* make_integer_sequence */
+template <typename T, size_t N, T ...Rest> struct make_integer_sequence : make_integer_sequence<T, N - 1, N - 1, Rest...> {};
+template <typename T, T ...Rest> struct make_integer_sequence<T, 0, Rest...> { typedef integer_sequence<T, Rest...> type; };
+
+
+/* make_index_sequence */
+template <size_t N, size_t ...Rest> struct make_index_sequence : make_index_sequence<N - 1, N - 1, Rest...> {};
+template <size_t ...Rest> struct make_index_sequence<0, Rest...> { typedef index_sequence<Rest...> type; };
+
+
+/* make_integer_repetition */
+template <typename T, T i, size_t N, size_t ...Rest> struct make_integer_repetition : make_integer_repetition<T, i, N - 1, i, Rest...> {};
+template <typename T, T i, size_t ...Rest> struct make_integer_repetition<T, i, 0, Rest...> { typedef integer_sequence<T, Rest...> type; };
+
+
+/* make_index_repetition */
+template <size_t i, size_t N, size_t ...Rest> struct make_index_repetition : make_index_repetition<i, N - 1, i, Rest...> {};
+template <size_t i, size_t ...Rest> struct make_index_repetition<i, 0, Rest...> { typedef index_sequence<Rest...> type; };
 
 
 /* result_of */
@@ -591,6 +630,38 @@ template <typename F, typename T> struct arguments_of<F T::* volatile> : argumen
 template <typename F, typename T> struct arguments_of<F T::* volatile const> : arguments_of<F> {};
 
 
+/* parameter_pack_size */
+template <typename T> struct parameter_pack_size;
+template <typename ...Args> struct parameter_pack_size<parameter_pack<Args...>> : integral_constant<size_t, sizeof...(Args)> {};
+
+
+/* flat_parameter_pack */
+/* e.g. parameter_pack<parameter_pack<...>, parameter_pack<...>> to parameter_pack<...> */
+template <typename T, typename ...> struct flat_parameter_pack { typedef T type; };
+template <typename T> struct flat_parameter_pack<parameter_pack<T>>  { typedef T type; };
+template <typename ...T0, typename ...T1, typename ...Args>
+struct flat_parameter_pack<parameter_pack<parameter_pack<T0...>, parameter_pack<T1...>, Args...>>
+	: public flat_parameter_pack<parameter_pack<parameter_pack<T0..., T1...>, Args...>> {};
+
+
+/* map_parameter_pack */
+/* e.g. for M: template <typename T> struct M { typedef parameter_pack<T> type; }; */
+template <template <typename> class M, typename ...Args>
+struct mapped_parameter_pack { typedef typename flat_parameter_pack<parameter_pack<typename M<Args>::type...>>::type type; };
+
+
+/* has_function_x */
+#define DEF_HAS_FUNCTION(x) \
+	template <typename ...Args> \
+	class has_function_##x { \
+		template <typename T> struct as_true_type : true_type {}; \
+		template <typename ...Ts> static auto internal_##x(const int, Ts... args) -> has_function_##x::as_true_type<decltype(x(args...))> { return true_type(); } \
+		template <typename ...Ts> static auto internal_##x(const float, Ts...) -> false_type { return false_type(); } \
+	public: \
+		static constexpr bool value = decltype(has_function_##x::internal_##x(0, Args()...))::value; \
+	};
+
+
 /* has_member_x */
 #define DEF_HAS_MEMBER(x) \
 	template <typename T> \
@@ -604,6 +675,7 @@ template <typename F, typename T> struct arguments_of<F T::* volatile const> : a
 
 /* move() */
 template <typename T> T && move(T & val) { return static_cast<T &&>(val); }
+template <typename T> T && move(T && val) { return static_cast<T &&>(val); }
 
 
 /* forward() */
@@ -654,6 +726,10 @@ template <typename ...Args> struct tuple_size<tuple<Args...>> : integral_constan
 template <typename ...Args> struct tuple_size<const tuple<Args...>> : integral_constant<size_t, sizeof...(Args)> {};
 template <typename ...Args> struct tuple_size<volatile tuple<Args...>> : integral_constant<size_t, sizeof...(Args)> {};
 template <typename ...Args> struct tuple_size<volatile const tuple<Args...>> : integral_constant<size_t, sizeof...(Args)> {};
+
+template <size_t i, typename T> struct tuple_element;
+template <size_t i, typename T0, typename ...Args> struct tuple_element<i, tuple<T0, Args...>> : tuple_element<i - 1, tuple<Args...>> {};
+template <typename T0, typename ...Args> struct tuple_element<0, tuple<T0, Args...>> { typedef T0 type; };
 
 template <size_t i, typename T0, typename ...Args>
 T0 & get(tuple_detail::impl<i, T0, Args...> & val) {

@@ -121,6 +121,7 @@ Limitations
 - `String::replace`, `String::remove`, `Stream::findUntil` and `Stream::findMulti` require GPL code and are excluded by default (see NO_GPL in [Makefile](Makefile))
 - Remote functions returning pointers or modifying passed pointers or variables are not supported.
 - The implemented soft reset executed at application startup does not resets all states on the remote device (see [`softReset()`](src/arduino/Reset.cpp).
+- Primitive data types are handled with the same range as on the target device. However, implicit type promotion may create different results. This could be corrected with incorporation of `boost::safe_numerics` in future releases.
 
 License
 =======

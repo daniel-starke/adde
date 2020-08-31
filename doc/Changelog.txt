@@ -4,6 +4,16 @@ M.N.P
 | +---- minor: increased if command-line syntax/semantic breaking changes were applied
 +------ major: increased if elementary changes (from user's point of view) were made
 
+1.0.2 (2020-08-31)
+ - changed: Utility.hpp to use make_index_sequence and index_sequence from Meta.hpp
+ - fixed: assignment/copy-constructor mismatch in Crc16
+ - fixed: wrong handling of broken quotation in Framing
+ - fixed: shortTimeout type in _FVI::waitForResult()
+ - fixed: declaration/definition scope of handleResult()
+ - fixed: maybe-uninitialized warning for result.res in CallResult
+ - fixed: unused function argument res in callUnpacked()
+ - fixed: implicit casts from size_t to uint8_t in arduino.ino
+
 1.0.1 (2019-06-28)
  - fixed: virtual COM port removal detection on Windows
  - fixed: high CPU usage for serial read on Windows

@@ -3,7 +3,7 @@
  * @author Daniel Starke
  * @copyright Copyright 2019 Daniel Starke
  * @date 2019-03-08
-* @version 2019-05-23
+ * @version 2020-05-16
  */
 #ifndef __ADDE_ARDUINO_H__
 #define __ADDE_ARDUINO_H__
@@ -32,12 +32,12 @@
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define abs(x) (((x) > 0) ? (x) : -(x))
 #define constrain(x, low, high) (((x) < (low)) ? (low) : (((x) > (high)) ? (high) : (x)))
-#define round(x) (((x) >= 0) ? ((long)((x) + 0.5)) : ((long)((x) - 0.5)))
+#define round(x) (((x) >= 0) ? long((x) + 0.5) : long((x) - 0.5))
 #define radians(deg) ((deg) * DEG_TO_RAD)
 #define degrees(rad) ((rad) * RAD_TO_DEG)
 #define sq(x) ((x) * (x))
 #undef RANDOM_MAX
-#define	RANDOM_MAX 0x7FFFFFFF
+#define RANDOM_MAX 0x7FFFFFFF
 
 
 #define HIGH _HIGH

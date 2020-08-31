@@ -651,8 +651,8 @@ void String::replace(const String & find, const String & repl) {
 #ifdef NO_GPL
 	(void)find; (void)repl;
 	abort();
-#else /* the following code is taken from the original Arduino library and licensed under the LGPL 2.1 */
-#warning This library used LGPL 2.1 code. Build with NO_GPL to disable relevant parts.
+#else /* the following code is taken from the original Arduino library and is licensed under the LGPL 2.1 */
+#warning This library uses LGPL 2.1 code. Build with NO_GPL to disable relevant parts.
 	if (this->len == 0 || find.len == 0) return;
 	const int diff = repl.len - find.len;
 	char * readFrom = this->buffer;
@@ -703,8 +703,8 @@ void String::remove(unsigned int index, unsigned int count) {
 #ifdef NO_GPL
 	(void)index; (void)count;
 	abort();
-#else /* the following code is taken from the original Arduino library and licensed under the LGPL 2.1 */
-#warning This library used LGPL 2.1 code. Build with NO_GPL to disable relevant parts.
+#else /* the following code is taken from the original Arduino library and is licensed under the LGPL 2.1 */
+#warning This library uses LGPL 2.1 code. Build with NO_GPL to disable relevant parts.
 	if (index >= this->len) return;
 	if (count <= 0) return;
 	if (count > (this->len - index)) count = this->len - index;

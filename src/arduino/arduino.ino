@@ -1,9 +1,9 @@
 /**
  * @file arduino.ino
  * @author Daniel Starke
- * @copyright Copyright 2019 Daniel Starke
+ * @copyright Copyright 2019-2020 Daniel Starke
  * @date 2019-02-20
- * @version 2019-04-15
+ * @version 2020-08-30
  * 
  * Tested with Arduino IDE 1.8.5, GCC 7.4 and ATmega32U4 (a.k.a. Arduino Pro Micro).
  * 
@@ -142,7 +142,7 @@ volatile bool intValue[MAX_NUM_INTERRUPTS];
 /**
  * Interrupt number currently used by the interrupt handler at the given index.
  */
-uint8_t intNum[MAX_NUM_INTERRUPTS] = {NOT_AN_INTERRUPT};
+uint8_t intNum[MAX_NUM_INTERRUPTS] = {static_cast<uint8_t>(NOT_AN_INTERRUPT)};
 
 
 
@@ -158,6 +158,47 @@ uint8_t intBuffer[(MAX_NUM_INTERRUPTS + 7) / 8];
 		intValue[i] = true; \
 	}
 PP_REPEAT_TPL(MAX_NUM_INTERRUPTS, DEF_HANDLE_INT)
+
+
+/**
+ * Return the result of a function call to the host.
+ * 
+ * @param[in,out] hal - frame handler argument list
+ * @param[in] val - function return value
+ * @return true on success, false on function argument extraction error
+ * @tparam T - encapsulated result type
+ */
+template <typename T>
+ErrorCode::Type handleResult(FrameHandlerArgs & hal, const CallResult<T> & val) {
+	if ( val.success ) {
+		framing.beginTransmission(hal.seq);
+		framing.write(uint8_t(ResultCode::RESULT));
+		framing.write(uint8_t(hal.op));
+		framing.write(val.result);
+		framing.endTransmission();
+	}
+	return val.success ? ErrorCode::SUCCESS : ErrorCode::SIGNATURE_MISMATCH;
+}
+
+
+/**
+ * Return the result of a function call to the host.
+ * 
+ * @param[in,out] hal - frame handler argument list
+ * @param[in] val - function return value
+ * @return true on success, false on function argument extraction error
+ * @remarks Specialization for functions with no return value.
+ */
+template <>
+ErrorCode::Type handleResult(FrameHandlerArgs & hal, const CallResult<void> & val) {
+	if ( val.success ) {
+		framing.beginTransmission(hal.seq);
+		framing.write(uint8_t(ResultCode::RESULT));
+		framing.write(uint8_t(hal.op));
+		framing.endTransmission();
+	}
+	return val.success ? ErrorCode::SUCCESS : ErrorCode::SIGNATURE_MISMATCH;
+}
 
 
 /**
@@ -187,7 +228,7 @@ ErrorCode::Type handleGetDevName(FrameHandlerArgs & hal) {
 	framing.beginTransmission(hal.seq);
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
-	for (uint8_t i = 0; (i + 1) < sizeof(devName); i++) {
+	for (uint8_t i = 0; (i + 1) < static_cast<uint8_t>(sizeof(devName)); i++) {
 		framing.write(uint8_t(PCF_ROM_READ_U8(devName, i)));
 	}
 	framing.endTransmission();
@@ -206,7 +247,7 @@ ErrorCode::Type handleGetPinMapD(FrameHandlerArgs & hal) {
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
 	framing.write(uint8_t(NUM_DIGITAL_PINS));
-	for (uint8_t i = 0; i < uint8_t(NUM_DIGITAL_PINS); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(NUM_DIGITAL_PINS); i++) {
 		framing.write(uint8_t(digitalPinToPort(i)));
 	}
 	framing.endTransmission();
@@ -225,11 +266,11 @@ ErrorCode::Type handleGetPinMapP(FrameHandlerArgs & hal) {
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
 	uint8_t count = 0;
-	for (uint8_t i = 0; i < uint8_t(NUM_DIGITAL_PINS); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(NUM_DIGITAL_PINS); i++) {
 		if ( digitalPinHasPWM(i) ) count++;
 	}
 	framing.write(count);
-	for (uint8_t i = 0; i < uint8_t(NUM_DIGITAL_PINS); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(NUM_DIGITAL_PINS); i++) {
 		if ( digitalPinHasPWM(i) ) framing.write(uint8_t(i));
 	}
 	framing.endTransmission();
@@ -248,7 +289,7 @@ ErrorCode::Type handleGetPinMapI(FrameHandlerArgs & hal) {
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
 	framing.write(uint8_t(MAX_NUM_INTERRUPTS));
-	for (uint8_t i = 0; i < uint8_t(NUM_DIGITAL_PINS); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(NUM_DIGITAL_PINS); i++) {
 		const int val = digitalPinToInterrupt(i);
 		framing.write(uint8_t((val == NOT_AN_INTERRUPT) ? INVALID_PIN : val)); 
 	}
@@ -328,7 +369,7 @@ ErrorCode::Type handleHardwareSerialGetConstants(FrameHandlerArgs & hal) {
 	framing.beginTransmission(hal.seq);
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
-	for (uint8_t i = 0; i < sizeof(consts); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(sizeof(consts)); i++) {
 		framing.write(PCF_ROM_READ_U8(consts, i));
 	}
 	framing.endTransmission();
@@ -440,7 +481,7 @@ ErrorCode::Type handleSpiGetConstants(FrameHandlerArgs & hal) {
 	framing.beginTransmission(hal.seq);
 	framing.write(uint8_t(ResultCode::RESULT));
 	framing.write(uint8_t(hal.op));
-	for (uint8_t i = 0; i < sizeof(consts); i++) {
+	for (uint8_t i = 0; i < static_cast<uint8_t>(sizeof(consts)); i++) {
 		framing.write(PCF_ROM_READ_U8(consts, i));
 	}
 	framing.endTransmission();
